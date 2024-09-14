@@ -16,6 +16,7 @@ import java.util.Map;
 public class UserController {
     private final Map<Long, User> users = new HashMap<>();
     private Long serialId = 0L;
+
     @GetMapping
     public Collection<User> findAll() {
         return users.values();
