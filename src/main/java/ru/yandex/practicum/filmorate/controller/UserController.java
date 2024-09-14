@@ -15,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
     private final Map<Long, User> users = new HashMap<>();
-
+    private Long serialId = 0L;
     @GetMapping
     public Collection<User> findAll() {
         return users.values();
@@ -28,7 +28,7 @@ public class UserController {
             user.setName(user.getLogin());
         }
 
-        user.setId(getNextId());
+        user.setId(++serialId);
         users.put(user.getId(), user);
         log.info("Пользователь с id={} добавлен", user.getId());
         return user;
@@ -42,16 +42,13 @@ public class UserController {
             throw new NotFoundException("Пользователь не найден");
         }
 
+        if (user.getName() == null || user.getName().isBlank()) {
+            log.info("При обновлени имя для отображения пустое, поле name заполняется логином");
+            user.setName(user.getLogin());
+        }
+
         users.put(user.getId(), user);
         log.info("Пользователь с id={} обновлен", user.getId());
         return user;
-    }
-
-    private long getNextId() {
-        long currentMaxUserId = users.keySet()
-                .stream()
-                .mapToLong(id -> id).max()
-                .orElse(0);
-        return ++currentMaxUserId;
     }
 }

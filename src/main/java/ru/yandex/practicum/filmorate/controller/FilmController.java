@@ -15,6 +15,7 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
+    private Long serialId = 0L;
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -23,7 +24,7 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        film.setId(getNextId());
+        film.setId(++serialId);
         films.put(film.getId(), film);
         log.info("Фильм с id={} добавлен", film.getId());
         return film;
@@ -41,13 +42,5 @@ public class FilmController {
         log.info("Фильм с id={} обновлен", film.getId());
 
         return film;
-    }
-
-    private long getNextId() {
-        long currentMaxFilmId = films.keySet()
-                .stream()
-                .mapToLong(id -> id).max()
-                .orElse(0);
-        return ++currentMaxFilmId;
     }
 }
