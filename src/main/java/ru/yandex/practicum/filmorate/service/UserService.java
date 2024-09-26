@@ -22,6 +22,22 @@ public class UserService {
         return user1;
     }
 
+    public User addUser(User user) {
+        return userStorage.add(user);
+    }
+
+    public User updateUser(User user) {
+        return userStorage.update(user);
+    }
+
+    public Collection<User> findAll() {
+        return userStorage.findAll();
+    }
+
+    public User findById(Long id) {
+        return userStorage.findById(id);
+    }
+
     public User removeFromFriends(Long userId1, Long userId2) {
         User user1 = userStorage.findById(userId1);
         User user2 = userStorage.findById(userId2);

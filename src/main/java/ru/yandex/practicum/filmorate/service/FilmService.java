@@ -26,6 +26,18 @@ public class FilmService {
         return film;
     }
 
+    public Film addFilm(Film film) {
+        return filmStorage.add(film);
+    }
+
+    public Film updateFilm(Film film) {
+        return filmStorage.update(film);
+    }
+
+    public Collection<Film> findAll() {
+        return filmStorage.findAll();
+    }
+
     public Film removeLike(Long filmId, Long userId) {
         Film film = filmStorage.findById(filmId);
         userStorage.findById(userId);
@@ -36,10 +48,9 @@ public class FilmService {
     }
 
     public Collection<Film> getMostPopularMovies(Long count) {
-        long limit = count == null ? 10 : count;
         Collection<Film> popularFilms = filmStorage.findAll().stream()
                 .sorted(Comparator.comparingInt(Film::numberOfLikes).reversed())
-                .limit(limit)
+                .limit(count)
                 .toList();
 
         log.debug("Возвращены популярные фильмы {}", popularFilms);
