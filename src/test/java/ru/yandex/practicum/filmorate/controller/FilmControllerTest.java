@@ -1,25 +1,33 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.stream.IntStream;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @WebMvcTest(FilmController.class)
 public class FilmControllerTest {
+
+    @MockBean
+    private FilmService filmService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,7 +42,7 @@ public class FilmControllerTest {
     @BeforeEach
     public void setUp() {
         film = new Film(
-                null,
+                1L,
                 "bananaFilm",
                 "bananaTheBest",
                 LocalDate.now(),
@@ -44,14 +52,15 @@ public class FilmControllerTest {
 
     @Test
     public void filmCreate() throws Exception {
-//        mockMvc.perform(MockMvcRequestBuilders.post("/films")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(film)))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(film.getName()))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.description").value(film.getDescription()))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.releaseDate").value(film.getReleaseDate().format(dateTimeFormatter)))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.duration").value(film.getDuration()));
+        when(filmService.addFilm(any(Film.class))).thenReturn(film);
+        mockMvc.perform(MockMvcRequestBuilders.post("/films")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(film)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(film.getName()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.description").value(film.getDescription()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.releaseDate").value(film.getReleaseDate().format(dateTimeFormatter)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.duration").value(film.getDuration()));
     }
 
     @Test
@@ -95,11 +104,7 @@ public class FilmControllerTest {
 
     @Test
     public void filmGetAll() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(film)))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-
+        when(filmService.findAll()).thenReturn(Collections.singleton(film));
         mockMvc.perform(MockMvcRequestBuilders.get("/films"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[-1].id").isNumber())
@@ -111,19 +116,7 @@ public class FilmControllerTest {
 
     @Test
     public void filmUpdate() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(film)))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-                .andReturn();
-
-        String responseBody = mvcResult.getResponse().getContentAsString();
-        JsonNode jsonNode = objectMapper.readTree(responseBody);
-        Long id = jsonNode.get("id").asLong();
-
-        film.setId(id);
-        film.setName("bananaFilm-2.0");
+        when(filmService.updateFilm(any(Film.class))).thenReturn(film);
         mockMvc.perform(MockMvcRequestBuilders.put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
@@ -133,10 +126,10 @@ public class FilmControllerTest {
 
     @Test
     public void filmUnknownUpdate() throws Exception {
-        film.setId(9999L);
-        mockMvc.perform(MockMvcRequestBuilders.put("/users")
+        when(filmService.updateFilm(any(Film.class))).thenThrow(new NotFoundException(""));
+        mockMvc.perform(MockMvcRequestBuilders.put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError());
+                .andExpect(MockMvcResultMatchers.status().is(404));
     }
 }
