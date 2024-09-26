@@ -33,7 +33,6 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(NotFoundException ex) {
         log.warn(ex.getMessage());
         ErrorResponse errorResponse = new ErrorResponse("Запрашиваемый ресурс не найден", ex.getMessage());
