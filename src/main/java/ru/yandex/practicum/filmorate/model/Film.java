@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.annotations.DurationIsPositiveOrZero;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -29,7 +31,21 @@ public class Film {
     @DurationIsPositiveOrZero(message = "Продолжительность фильма должна быть положительным числом")
     private Duration duration;
 
+    private final Set<Long> likes = new HashSet<>();
+
     public long getDuration() {
         return duration.getSeconds();
+    }
+
+    public void addLike(Long id) {
+        likes.add(id);
+    }
+
+    public void removeLike(Long id) {
+        likes.remove(id);
+    }
+
+    public int numberOfLikes() {
+        return likes.size();
     }
 }
