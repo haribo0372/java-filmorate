@@ -30,11 +30,11 @@ public class User {
 
     private final Set<Long> friends = new HashSet<>();
 
-    public void addFriend(Long id){
+    public void addFriend(Long id) {
         friends.add(id);
     }
 
-    public void removeFromFriends(Long id){
+    public void removeFromFriends(Long id) {
         friends.remove(id);
     }
 }
