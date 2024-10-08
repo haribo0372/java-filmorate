@@ -1,55 +1,61 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-    private final Map<Long, User> users = new HashMap<>();
-    private Long serialId = 0L;
+    private final UserService userService;
 
     @GetMapping
     public Collection<User> findAll() {
-        return users.values();
+        return userService.findAll();
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.info("Имя для отображения пустое, поле name заполняется логином");
-            user.setName(user.getLogin());
-        }
-
-        user.setId(++serialId);
-        users.put(user.getId(), user);
-        log.info("Пользователь с id={} добавлен", user.getId());
-        return user;
+        return userService.addUser(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
+        return userService.updateUser(user);
+    }
 
-        if (users.get(user.getId()) == null) {
-            log.warn("Пользователь с id={} не найден", user.getId());
-            throw new NotFoundException("Пользователь не найден");
-        }
+    @GetMapping("/{id}")
+    public User findById(@PathVariable Long id) {
+        return userService.findById(id);
+    }
 
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.info("При обновлени имя для отображения пустое, поле name заполняется логином");
-            user.setName(user.getLogin());
-        }
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addFriend(@PathVariable Long id,
+                          @PathVariable Long friendId) {
 
-        users.put(user.getId(), user);
-        log.info("Пользователь с id={} обновлен", user.getId());
-        return user;
+        return userService.addToFriends(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User removeFriend(@PathVariable Long id,
+                             @PathVariable Long friendId) {
+
+        return userService.removeFromFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getFriends(@PathVariable Long id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(@PathVariable Long id,
+                                             @PathVariable Long otherId) {
+        return userService.getCommonFriends(id, otherId);
     }
 }

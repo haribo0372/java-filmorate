@@ -8,6 +8,8 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.annotations.WithoutSpaces;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -25,4 +27,14 @@ public class User {
 
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+
+    private final Set<Long> friends = new HashSet<>();
+
+    public void addFriend(Long id) {
+        friends.add(id);
+    }
+
+    public void removeFromFriends(Long id) {
+        friends.remove(id);
+    }
 }
