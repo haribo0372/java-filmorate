@@ -1,64 +1,83 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
-import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
 
-    public User addToFriends(Long userId1, Long userId2) {
+    public UserDto addToFriends(Long userId1, Long userId2) {
         User user1 = userStorage.findById(userId1);
-        User user2 = userStorage.findById(userId2);
+        userStorage.findById(userId2);
 
-        user1.addFriend(userId2);
-        user2.addFriend(userId1);
-        return user1;
+        if (userStorage.addFriendship(userId1, userId2))
+            log.info("Пользователь с id={} отправил запрос на добавление " +
+                    "в друзья пользователю с id={}", userId1, userId2);
+
+        user1.setFriends(userStorage.findAllFriendsIdByUserId(userId1));
+        return UserMapper.fromUserToUserDto(user1);
     }
 
-    public User addUser(User user) {
-        return userStorage.add(user);
+    public UserDto addUser(NewUserRequest request) {
+        User user = UserMapper.fromNewUserRequestToUser(request);
+        User savedUser = userStorage.save(user);
+        log.info("Пользователь с id={} сохранен", savedUser.getId());
+        return UserMapper.fromUserToUserDto(savedUser);
     }
 
-    public User updateUser(User user) {
-        return userStorage.update(user);
+    public UserDto updateUser(UpdateUserRequest request) {
+        User user = UserMapper.fromUpdateUserRequestToUser(request);
+        User storageUser = userStorage.findById(user.getId());
+
+        if (user.getName() != null) storageUser.setName(user.getName());
+        if (user.getLogin() != null) storageUser.setLogin(user.getLogin());
+        if (user.getEmail() != null) storageUser.setEmail(user.getEmail());
+        if (user.getBirthday() != null) storageUser.setBirthday(user.getBirthday());
+
+        User updatedUser = userStorage.update(storageUser);
+        log.info("Пользователь с id={} обновлен", updatedUser.getId());
+
+        return UserMapper.fromUserToUserDto(updatedUser);
     }
 
-    public Collection<User> findAll() {
-        return userStorage.findAll();
+    public Collection<UserDto> findAll() {
+        return userStorage.findAll().stream()
+                .map(UserMapper::fromUserToUserDto).toList();
     }
 
-    public User findById(Long id) {
-        return userStorage.findById(id);
+    public UserDto findById(Long id) {
+        return UserMapper.fromUserToUserDto(userStorage.findById(id));
     }
 
-    public User removeFromFriends(Long userId1, Long userId2) {
+    public UserDto removeFromFriends(Long userId1, Long userId2) {
         User user1 = userStorage.findById(userId1);
-        User user2 = userStorage.findById(userId2);
+        userStorage.findById(userId2);
 
-        user1.removeFromFriends(userId2);
-        user2.removeFromFriends(userId1);
-
-        return user1;
+        userStorage.removeFriendship(userId1, userId2);
+        log.info("Пользователь с id={} удалил пользователя с id={} из списка друзей", userId1, userId2);
+        return UserMapper.fromUserToUserDto(user1);
     }
 
-    public Collection<User> getCommonFriends(Long userId1, Long userId2) {
-        Set<Long> friendsUser1 = userStorage.findById(userId1).getFriends();
-        Set<Long> friendsUser2 = userStorage.findById(userId2).getFriends();
-
-        return friendsUser1.stream()
-                .filter(friendsUser2::contains)
-                .map(userStorage::findById)
-                .toList();
+    public Collection<UserDto> getCommonFriends(Long userId1, Long userId2) {
+        return userStorage.getCommonFriends(userId1, userId2).stream()
+                .map(UserMapper::fromUserToUserDto).toList();
     }
 
-    public Collection<User> getFriends(Long id) {
-        return userStorage.findById(id).getFriends().stream().map(userStorage::findById).toList();
+    public Collection<UserDto> getFriends(Long userId) {
+        userStorage.findById(userId);
+        return userStorage.getAllFriendsByUserId(userId).stream()
+                .map(UserMapper::fromUserToUserDto).toList();
     }
 }

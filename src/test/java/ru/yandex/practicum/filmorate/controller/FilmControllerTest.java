@@ -4,33 +4,36 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.dto.film.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.dto.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
+import java.util.Set;
 import java.util.stream.IntStream;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-@WebMvcTest(FilmController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 public class FilmControllerTest {
-
-    @MockBean
-    private FilmService filmService;
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private FilmService filmService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -38,24 +41,32 @@ public class FilmControllerTest {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private Film film;
+    private NewFilmRequest newFilmRequest = new NewFilmRequest(
+            "bananaFilm",
+            "bananaTheBest",
+            LocalDate.now(),
+            Duration.ofHours(2),
+            new Rating(1L, null),
+            Set.of()
+    );
+
+    private UpdateFilmRequest updateFilmRequest = new UpdateFilmRequest(
+            1L, newFilmRequest.getName(), newFilmRequest.getDescription(),
+            newFilmRequest.getReleaseDate(), newFilmRequest.getDuration(),
+            newFilmRequest.getGenres(), newFilmRequest.getMpa(), Set.of()
+    );
+
 
     @BeforeEach
     public void setUp() {
-        film = new Film(
-                1L,
-                "bananaFilm",
-                "bananaTheBest",
-                LocalDate.now(),
-                Duration.ofHours(2)
-        );
+        film = FilmMapper.newFilmRequestToFilm(newFilmRequest);
     }
 
     @Test
     public void filmCreate() throws Exception {
-        when(filmService.addFilm(any(Film.class))).thenReturn(film);
         mockMvc.perform(MockMvcRequestBuilders.post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(film)))
+                        .content(objectMapper.writeValueAsString(newFilmRequest)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(film.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description").value(film.getDescription()))
@@ -104,7 +115,6 @@ public class FilmControllerTest {
 
     @Test
     public void filmGetAll() throws Exception {
-        when(filmService.findAll()).thenReturn(Collections.singleton(film));
         mockMvc.perform(MockMvcRequestBuilders.get("/films"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[-1].id").isNumber())
@@ -116,20 +126,20 @@ public class FilmControllerTest {
 
     @Test
     public void filmUpdate() throws Exception {
-        when(filmService.updateFilm(any(Film.class))).thenReturn(film);
+        updateFilmRequest.setName("UPDATED NAME");
         mockMvc.perform(MockMvcRequestBuilders.put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(film)))
+                        .content(objectMapper.writeValueAsString(updateFilmRequest)))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(film.getName()));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(updateFilmRequest.getName()));
     }
 
     @Test
     public void filmUnknownUpdate() throws Exception {
-        when(filmService.updateFilm(any(Film.class))).thenThrow(new NotFoundException(""));
+        updateFilmRequest.setId(500L);
         mockMvc.perform(MockMvcRequestBuilders.put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(film)))
+                        .content(objectMapper.writeValueAsString(updateFilmRequest)))
                 .andExpect(MockMvcResultMatchers.status().is(404));
     }
 }

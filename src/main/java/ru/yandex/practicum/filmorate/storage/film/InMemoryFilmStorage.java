@@ -4,11 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.*;
 
 @Slf4j
-@Component
+//@Component
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
     private Long serialId = 0L;
@@ -36,7 +37,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film add(Film film) {
+    public Film save(Film film) {
         film.setId(++serialId);
         films.put(film.getId(), film);
         log.info("Фильм с id={} добавлен", film.getId());
@@ -52,5 +53,25 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Фильм с id={} обновлен", film.getId());
 
         return film;
+    }
+
+    @Override
+    public boolean linkFilmToUser(Long filmId, Long userId) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteLinkFilmToUser(Long filmId, Long userId) {
+        return false;
+    }
+
+    @Override
+    public Set<Long> findAllLikesByFilmId(Long filmId) {
+        return Set.of();
+    }
+
+    @Override
+    public Set<Genre> findAllGenresByFilmId(Long filmId) {
+        return Set.of();
     }
 }
