@@ -9,7 +9,7 @@ import java.time.ZoneOffset;
 public class TimestampCast {
     public static final ZoneOffset currentZone = ZoneOffset.UTC;
 
-    public static Timestamp castFromLocalDate(LocalDate localDate){
+    public static Timestamp castFromLocalDate(LocalDate localDate) {
         LocalDateTime localDateTime = localDate.atStartOfDay();
 
         OffsetDateTime offsetDateTime = localDateTime.atOffset(currentZone);

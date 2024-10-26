@@ -46,7 +46,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "WHERE user_id_send = ?";
     private static final String FIND_COMMON_FRIENDS =
             String.format("SELECT u.id, u.email, u.login, u.name, u.birthday " +
-                    "FROM t_user u WHERE u.id IN (%s) AND u.id IN (%s) ",
+                            "FROM t_user u WHERE u.id IN (%s) AND u.id IN (%s) ",
                     FIND_FRIENDS_BY_ID, FIND_FRIENDS_BY_ID);
     private static final String FIND_ALL_FRIENDS_BY_USER_ID =
             String.format("SELECT u.id, u.email, u.login, u.name, u.birthday " +

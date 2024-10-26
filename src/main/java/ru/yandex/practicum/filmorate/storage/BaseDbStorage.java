@@ -17,11 +17,11 @@ public abstract class BaseDbStorage<T> {
     protected final JdbcTemplate jdbcTemplate;
     protected final RowMapper<T> rowMapper;
 
-    protected List<T> findMany(String query, Object... params){
+    protected List<T> findMany(String query, Object... params) {
         return jdbcTemplate.query(query, rowMapper, params);
     }
 
-    protected Optional<T> findOne(String query, Object... params){
+    protected Optional<T> findOne(String query, Object... params) {
         try {
             T result = jdbcTemplate.queryForObject(query, rowMapper, params);
             return Optional.ofNullable(result);
@@ -30,7 +30,7 @@ public abstract class BaseDbStorage<T> {
         }
     }
 
-    protected int update(String query, Object... params){
+    protected int update(String query, Object... params) {
         return jdbcTemplate.update(query, params);
     }
 

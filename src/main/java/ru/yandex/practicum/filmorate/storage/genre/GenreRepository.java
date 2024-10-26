@@ -26,18 +26,18 @@ public class GenreRepository extends BaseDbStorage<Genre> implements BaseStorage
             "INSERT INTO t_film_genre (film_id, genre_id) VALUES (?, ?)";
 
     private static final String FIND_ALL_GENRES_OF_FILM = """
-            SELECT g.id AS id, g.name AS name\s
-            FROM t_film_genre f_g\s
-            JOIN t_genre g ON f_g.genre_id = g.id\s
-            WHERE f_g.film_id = ?
-           \s""";
+             SELECT g.id AS id, g.name AS name\s
+             FROM t_film_genre f_g\s
+             JOIN t_genre g ON f_g.genre_id = g.id\s
+             WHERE f_g.film_id = ?
+            \s""";
 
     private static final String FIND_RELATED_FILM_GENRE = """
-            SELECT g.id AS id, g.name AS name\s
-            FROM t_film_genre f_g\s
-            JOIN t_genre g ON f_g.genre_id = g.id\s
-            WHERE f_g.film_id = ? AND f_g.genre_id = ?
-           \s""";
+             SELECT g.id AS id, g.name AS name\s
+             FROM t_film_genre f_g\s
+             JOIN t_genre g ON f_g.genre_id = g.id\s
+             WHERE f_g.film_id = ? AND f_g.genre_id = ?
+            \s""";
 
     public GenreRepository(JdbcTemplate jdbcTemplate, RowMapper<Genre> rowMapper) {
         super(jdbcTemplate, rowMapper);
@@ -59,11 +59,11 @@ public class GenreRepository extends BaseDbStorage<Genre> implements BaseStorage
                 () -> new ValidationException(String.format("Жанр с id=%d не найден", id)));
     }
 
-    public Set<Genre> findGenresByFilmId(long filmId){
+    public Set<Genre> findGenresByFilmId(long filmId) {
         return new HashSet<>(findMany(FIND_ALL_GENRES_OF_FILM, filmId));
     }
 
-    public boolean filmRelatedWithGenre(Long filmId, Long genreId){
+    public boolean filmRelatedWithGenre(Long filmId, Long genreId) {
         return findOne(FIND_RELATED_FILM_GENRE, filmId, genreId).isPresent();
     }
 

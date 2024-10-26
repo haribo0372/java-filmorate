@@ -14,7 +14,9 @@ import ru.yandex.practicum.filmorate.storage.genre.GenreRepository;
 import ru.yandex.practicum.filmorate.storage.rating.RatingRepository;
 import ru.yandex.practicum.filmorate.util.sql.type.Interval;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.util.sql.cast.TimestampCast.castFromLocalDate;
