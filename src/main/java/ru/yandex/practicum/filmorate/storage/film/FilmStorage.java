@@ -1,17 +1,21 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.BaseStorage;
 
 import java.util.Collection;
+import java.util.Set;
 
-public interface FilmStorage {
-    Collection<Film> findAll();
+public interface FilmStorage extends BaseStorage<Film, Long> {
 
-    Film findById(Long id);
+    boolean linkFilmToUser(Long filmId, Long userId);
 
-    Film remove(Long id);
+    boolean deleteLinkFilmToUser(Long filmId, Long userId);
 
-    Film add(Film film);
+    Set<Long> findAllLikesByFilmId(Long filmId);
 
-    Film update(Film film);
+    Set<Genre> findAllGenresByFilmId(Long filmId);
+
+    Collection<Film> findMostPopularMovies(Long count);
 }

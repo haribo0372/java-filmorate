@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,11 +11,9 @@ import ru.yandex.practicum.filmorate.annotations.WithoutSpaces;
 import java.time.LocalDate;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class User {
-    private Long id;
-
+@AllArgsConstructor
+public class NewUserRequest {
     @Email(message = "Указанный email адрес имеет неверный формат")
     private String email;
 
