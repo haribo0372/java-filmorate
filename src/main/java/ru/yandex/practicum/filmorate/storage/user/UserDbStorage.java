@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.util.sql.cast.TimestampCast;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,7 +42,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "WHERE user_id_send = ?";
     private static final String FIND_COMMON_FRIENDS =
             "SELECT * FROM users u, users_friendship f, users_friendship o " +
-            "where u.id = f.user_id_receive AND u.id = o.user_id_receive AND f.user_id_send = ? AND o.user_id_send = ?";
+                    "where u.id = f.user_id_receive AND u.id = o.user_id_receive AND f.user_id_send = ? AND o.user_id_send = ?";
 
     private static final String FIND_ALL_FRIENDS_BY_USER_ID =
             String.format("SELECT u.id, u.email, u.login, u.name, u.birthday " +
