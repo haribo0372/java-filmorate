@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dto.film;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
