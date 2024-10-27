@@ -21,36 +21,33 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final RowMapper<Friendship> mapperFriendship =
             (rs, rowNum) -> new Friendship(
                     rs.getLong("user_id_send"),
-                    rs.getLong("user_id_receive"),
-                    rs.getBoolean("confirmed"));
+                    rs.getLong("user_id_receive"));
 
-    private static final String FIND_ALL_QUERY = "SELECT * FROM t_user";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM t_user u WHERE u.id = ?";
-    private static final String DELETE_BY_ID_QUERY = "DELETE FROM t_user u WHERE u.id = ?";
-    private static final String UPDATE_BY_ID_QUERY = "UPDATE t_user SET" +
+    private static final String FIND_ALL_QUERY = "SELECT * FROM users";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM users u WHERE u.id = ?";
+    private static final String DELETE_BY_ID_QUERY = "DELETE FROM users u WHERE u.id = ?";
+    private static final String UPDATE_BY_ID_QUERY = "UPDATE users SET" +
             " email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
-    private static final String INSERT_QUERY = "INSERT INTO t_user (email, login, name, birthday)" +
+    private static final String INSERT_QUERY = "INSERT INTO users (email, login, name, birthday)" +
             " VALUES(?, ?, ?, ?)";
 
-    private static final String FIND_ALL_FRIENDSHIP_BY_USER_ID = "SELECT * FROM t_users_friendship WHERE user_id_send = ?";
-    private static final String FIND_FRIENDSHIP = "SELECT * FROM t_users_friendship " +
+    private static final String FIND_ALL_FRIENDSHIP_BY_USER_ID = "SELECT * FROM users_friendship WHERE user_id_send = ?";
+    private static final String FIND_FRIENDSHIP = "SELECT * FROM users_friendship " +
             "WHERE user_id_send = ? AND user_id_receive = ?";
-    private static final String INSERT_FRIENDSHIP = "INSERT INTO t_users_friendship " +
-            "(user_id_send, user_id_receive, confirmed) VALUES (?, ?, ?)";
-    private static final String UPDATE_FRIENDSHIP_CONFIRMED = "UPDATE t_users_friendship SET " +
-            " confirmed = ? WHERE user_id_send = ? AND user_id_receive = ?";
-    private static final String DELETE_FRIENDSHIP = "DELETE FROM t_users_friendship " +
+    private static final String INSERT_FRIENDSHIP = "INSERT INTO users_friendship " +
+            "(user_id_send, user_id_receive) VALUES (?, ?)";
+    private static final String DELETE_FRIENDSHIP = "DELETE FROM users_friendship " +
             "WHERE user_id_send = ? AND user_id_receive = ?";
 
-    private static final String FIND_FRIENDS_BY_ID = "SELECT user_id_receive FROM t_users_friendship " +
+    private static final String FIND_FRIENDS_BY_ID = "SELECT user_id_receive FROM users_friendship " +
             "WHERE user_id_send = ?";
     private static final String FIND_COMMON_FRIENDS =
-            String.format("SELECT u.id, u.email, u.login, u.name, u.birthday " +
-                            "FROM t_user u WHERE u.id IN (%s) AND u.id IN (%s) ",
-                    FIND_FRIENDS_BY_ID, FIND_FRIENDS_BY_ID);
+            "SELECT * FROM users u, users_friendship f, users_friendship o " +
+            "where u.id = f.user_id_receive AND u.id = o.user_id_receive AND f.user_id_send = ? AND o.user_id_send = ?";
+
     private static final String FIND_ALL_FRIENDS_BY_USER_ID =
             String.format("SELECT u.id, u.email, u.login, u.name, u.birthday " +
-                    "FROM t_user u WHERE u.id IN (%s)", FIND_FRIENDS_BY_ID);
+                    "FROM users u WHERE u.id IN (%s)", FIND_FRIENDS_BY_ID);
 
     public UserDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> rowMapper) {
         super(jdbcTemplate, rowMapper);
@@ -68,13 +65,10 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     @Override
-    public User remove(Long id) {
-        User user = findById(id);
+    public void remove(Long id) {
         int removedAmount = update(DELETE_BY_ID_QUERY, id);
         if (removedAmount <= 0)
             throw new InternalServerException("Не удалось удалить данные");
-
-        return user;
     }
 
     @Override
@@ -117,7 +111,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public Set<Long> findAllFriendsIdByUserId(Long userId) {
         return findAllFriendship(userId).stream()
-                .filter(Friendship::isConfirmed)
                 .map(Friendship::getUserIdReceive)
                 .collect(Collectors.toSet());
     }
@@ -130,35 +123,28 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public boolean friendshipIsConfirmed(Long userId1, Long userId2) {
         try {
-            Friendship friendship = jdbcTemplate
+            Friendship friendship1 = jdbcTemplate
                     .queryForObject(FIND_FRIENDSHIP, mapperFriendship, userId1, userId2);
-            return friendship != null && friendship.isConfirmed();
+            Friendship friendship2 = jdbcTemplate
+                    .queryForObject(FIND_FRIENDSHIP, mapperFriendship, userId2, userId1);
+            return friendship1 != null && friendship2 != null;
         } catch (EmptyResultDataAccessException ignored) {
             return false;
         }
     }
 
-    private int insertFriendship(Long userId1, Long userId2, boolean confirmed) {
-        return jdbcTemplate.update(INSERT_FRIENDSHIP, userId1, userId2, confirmed);
+    private int insertFriendship(Long userId1, Long userId2) {
+        return jdbcTemplate.update(INSERT_FRIENDSHIP, userId1, userId2);
     }
 
     @Override
     public boolean addFriendship(Long userId1, Long userId2) {
-        Optional<Friendship> friendship = findAllFriendship(userId2).stream()
-                .filter(friendship1 -> friendship1.getUserIdReceive().equals(userId1)).findAny();
-
-        boolean confirmed = friendship.isPresent();
-        if (confirmed)
-            jdbcTemplate.update(UPDATE_FRIENDSHIP_CONFIRMED, true, userId2, userId1);
-
-        return insertFriendship(userId1, userId2, confirmed) > 0;
+        return insertFriendship(userId1, userId2) > 0;
     }
 
     @Override
     public void removeFriendship(Long userId1, Long userId2) {
-        int deleteAmount = jdbcTemplate.update(DELETE_FRIENDSHIP, userId1, userId2);
-        if (deleteAmount > 0)
-            jdbcTemplate.update(UPDATE_FRIENDSHIP_CONFIRMED, false, userId2, userId1);
+        jdbcTemplate.update(DELETE_FRIENDSHIP, userId1, userId2);
     }
 
     @Override

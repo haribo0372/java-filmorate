@@ -36,9 +36,6 @@ public class UpdateFilmRequest {
     private Set<Genre> genres;
     private Rating mpa;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Set<Long> likes;
-
     public boolean hasName() {
         return name != null;
     }

@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class RatingRepository extends BaseDbStorage<Rating> implements BaseStorage<Rating, Long> {
-    public static final String FIND_ALL_QUERY = "SELECT * FROM t_rating";
-    public static final String FIND_BY_ID_QUERY = "SELECT * FROM t_rating r WHERE r.id = ?";
-    public static final String FIND_BY_NAME_QUERY = "SELECT * FROM t_rating r WHERE r.name = ?";
-    private static final String DELETE_BY_ID_QUERY = "DELETE FROM t_rating r WHERE r.id = ?";
-    private static final String UPDATE_BY_ID_QUERY = "UPDATE t_rating SET name = ? WHERE id = ?";
-    private static final String INSERT_QUERY = "INSERT INTO t_rating (name) VALUES (?)";
+    public static final String FIND_ALL_QUERY = "SELECT * FROM ratings";
+    public static final String FIND_BY_ID_QUERY = "SELECT * FROM ratings r WHERE r.id = ?";
+    public static final String FIND_BY_NAME_QUERY = "SELECT * FROM ratings r WHERE r.name = ?";
+    private static final String DELETE_BY_ID_QUERY = "DELETE FROM ratings r WHERE r.id = ?";
+    private static final String UPDATE_BY_ID_QUERY = "UPDATE ratings SET name = ? WHERE id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO ratings (name) VALUES (?)";
 
     public RatingRepository(JdbcTemplate jdbcTemplate, RowMapper<Rating> rowMapper) {
         super(jdbcTemplate, rowMapper);
@@ -50,13 +50,10 @@ public class RatingRepository extends BaseDbStorage<Rating> implements BaseStora
     }
 
     @Override
-    public Rating remove(Long id) {
-        Rating rating = findById(id);
+    public void remove(Long id) {
         int removedAmount = update(DELETE_BY_ID_QUERY, id);
         if (removedAmount <= 0)
             throw new InternalServerException("Не удалось удалить данные");
-
-        return rating;
     }
 
     @Override

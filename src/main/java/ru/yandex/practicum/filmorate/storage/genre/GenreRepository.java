@@ -15,27 +15,27 @@ import java.util.stream.Collectors;
 
 @Component
 public class GenreRepository extends BaseDbStorage<Genre> implements BaseStorage<Genre, Long> {
-    public static final String FIND_ALL_QUERY = "SELECT * FROM t_genre";
-    public static final String FIND_BY_ID_QUERY = "SELECT * FROM t_genre g WHERE g.id = ?";
-    public static final String FIND_BY_NAME_QUERY = "SELECT * FROM t_genre g WHERE g.name = ?";
-    private static final String DELETE_BY_ID_QUERY = "DELETE FROM t_genre g WHERE g.id = ?";
-    private static final String UPDATE_BY_ID_QUERY = "UPDATE t_genre SET name = ? WHERE id = ?";
-    private static final String INSERT_QUERY = "INSERT INTO t_genre (name) VALUES (?)";
+    public static final String FIND_ALL_QUERY = "SELECT * FROM genres";
+    public static final String FIND_BY_ID_QUERY = "SELECT * FROM genres g WHERE g.id = ?";
+    public static final String FIND_BY_NAME_QUERY = "SELECT * FROM genres g WHERE g.name = ?";
+    private static final String DELETE_BY_ID_QUERY = "DELETE FROM genres g WHERE g.id = ?";
+    private static final String UPDATE_BY_ID_QUERY = "UPDATE genres SET name = ? WHERE id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO genres (name) VALUES (?)";
 
     private static final String INSERT_RELATED_FILM_AND_GENRE =
-            "INSERT INTO t_film_genre (film_id, genre_id) VALUES (?, ?)";
+            "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
 
     private static final String FIND_ALL_GENRES_OF_FILM = """
              SELECT g.id AS id, g.name AS name\s
-             FROM t_film_genre f_g\s
-             JOIN t_genre g ON f_g.genre_id = g.id\s
+             FROM films_genres f_g\s
+             JOIN genres g ON f_g.genre_id = g.id\s
              WHERE f_g.film_id = ?
             \s""";
 
     private static final String FIND_RELATED_FILM_GENRE = """
              SELECT g.id AS id, g.name AS name\s
-             FROM t_film_genre f_g\s
-             JOIN t_genre g ON f_g.genre_id = g.id\s
+             FROM films_genres f_g\s
+             JOIN genres g ON f_g.genre_id = g.id\s
              WHERE f_g.film_id = ? AND f_g.genre_id = ?
             \s""";
 
@@ -77,13 +77,10 @@ public class GenreRepository extends BaseDbStorage<Genre> implements BaseStorage
     }
 
     @Override
-    public Genre remove(Long id) {
-        Genre genre = findById(id);
+    public void remove(Long id) {
         int removedAmount = update(DELETE_BY_ID_QUERY, id);
         if (removedAmount <= 0)
             throw new InternalServerException("Не удалось удалить данные");
-
-        return genre;
     }
 
     @Override

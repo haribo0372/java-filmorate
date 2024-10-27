@@ -33,7 +33,6 @@ public class UserMapper {
         dto.setEmail(user.getEmail());
         dto.setLogin(user.getLogin());
         dto.setBirthday(user.getBirthday());
-        user.getFriends().forEach(dto::addFriend);
         return dto;
     }
 }

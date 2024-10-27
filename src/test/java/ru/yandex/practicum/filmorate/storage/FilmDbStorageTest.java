@@ -55,8 +55,7 @@ class FilmDbStorageTest {
                 LocalDate.of(2020, 1, 1),
                 Duration.ofMinutes(120),
                 null,
-                new Rating(1L, null),
-                null
+                new Rating(1L, null)
         );
     }
 
@@ -83,8 +82,7 @@ class FilmDbStorageTest {
         Film savedFilm = filmStorage.save(film);
         Long filmId = savedFilm.getId();
 
-        Film removedFilm = filmStorage.remove(filmId);
-        assertFilmsEqual(savedFilm, removedFilm);
+        filmStorage.remove(filmId);
 
         assertThatThrownBy(() -> filmStorage.findById(filmId))
                 .isInstanceOf(NotFoundException.class);

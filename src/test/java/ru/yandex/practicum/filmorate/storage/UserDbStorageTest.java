@@ -102,12 +102,7 @@ class UserDbStorageTest {
                 "remove_user", "Remove User", LocalDate.of(1995, 7, 20));
         User savedUser = userStorage.save(user);
         Long userId = savedUser.getId();
-
-        User removedUser = userStorage.remove(userId);
-
-        assertThat(removedUser).isNotNull();
-        assertThat(removedUser.getId()).isEqualTo(userId);
-
+        userStorage.remove(userId);
         assertThatThrownBy(() -> userStorage.findById(userId))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining(String.format("Пользователь с id=%s не найден", userId));

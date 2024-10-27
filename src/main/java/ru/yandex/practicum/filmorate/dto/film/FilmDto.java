@@ -26,7 +26,4 @@ public class FilmDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Set<Genre> genres;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Set<Long> likes;
 }

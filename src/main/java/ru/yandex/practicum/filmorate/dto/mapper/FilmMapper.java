@@ -51,7 +51,6 @@ public class FilmMapper {
         filmDto.setMpa(film.getRating());
         filmDto.setDuration(film.getDuration());
         filmDto.setGenres(sortedGenres);
-        filmDto.setLikes(film.getLikes());
         return filmDto;
     }
 

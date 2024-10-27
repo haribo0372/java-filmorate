@@ -16,6 +16,7 @@ import ru.yandex.practicum.filmorate.util.sql.type.Interval;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,22 +26,23 @@ import static ru.yandex.practicum.filmorate.util.sql.cast.TimestampCast.castFrom
 @Component
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_ALL_QUERY = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration," +
-            " f.rating_id AS rating_id, r.name AS rating_name FROM t_film f JOIN t_rating r ON f.rating_id = r.id";
+            " f.rating_id AS rating_id, r.name AS rating_name FROM films f JOIN ratings r ON f.rating_id = r.id";
     private static final String FIND_BY_ID_QUERY = FIND_ALL_QUERY + " WHERE f.id = ?";
-    private static final String DELETE_BY_ID_QUERY = "DELETE FROM t_film f WHERE f.id = ?";
-    private static final String UPDATE_BY_ID_QUERY = "UPDATE t_film SET" +
+    private static final String DELETE_BY_ID_QUERY = "DELETE FROM films f WHERE f.id = ?";
+    private static final String UPDATE_BY_ID_QUERY = "UPDATE films SET" +
             " name = ?, description = ?, releaseDate = ?, duration = ?, rating_id = ? WHERE id = ?";
-    private static final String INSERT_QUERY_WITH_RATING = "INSERT INTO t_film (name, description," +
+    private static final String INSERT_QUERY_WITH_RATING = "INSERT INTO films (name, description," +
             " releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
-    private static final String INSERT_QUERY = "INSERT INTO t_film (name, description," +
-            " releaseDate, duration) VALUES (?, ?, ?, ?)";
 
-    private static final String INSERT_RELATED_FILM_AND_USER = "INSERT INTO t_film_user (film_id, user_id) " +
+    private static final String FIND_MOST_POPULAR_FILMS =
+            "SELECT film_id FROM films_users GROUP BY film_id ORDER BY COUNT(user_id) DESC LIMIT ?";
+
+    private static final String INSERT_RELATED_FILM_AND_USER = "INSERT INTO films_users (film_id, user_id) " +
             "VALUES (?, ?)";
-    private static final String DELETE_RELATED_FILM_AND_USER = "DELETE FROM t_film_user f_u " +
+    private static final String DELETE_RELATED_FILM_AND_USER = "DELETE FROM films_users f_u " +
             "WHERE f_u.film_id = ? AND f_u.user_id = ?";
 
-    private static final String FIND_ALL_LIKES_BY_FILM_ID = "SELECT user_id FROM t_film_user WHERE film_id = ?";
+    private static final String FIND_ALL_LIKES_BY_FILM_ID = "SELECT user_id FROM films_users WHERE film_id = ?";
 
     private final GenreRepository genreRepository;
     private final RatingRepository ratingRepository;
@@ -67,13 +69,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Film remove(Long id) {
-        Film film = fillFilmLikesAndGenres(findById(id));
+    public void remove(Long id) {
         int removedAmount = update(DELETE_BY_ID_QUERY, id);
         if (removedAmount <= 0)
             throw new InternalServerException("Не удалось удалить данные");
-
-        return film;
     }
 
     @Override
@@ -135,6 +134,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
+    public Collection<Film> findMostPopularMovies(Long count) {
+        RowMapper<Long> mapper = (resultSet, rowNum) -> resultSet.getLong(1);
+
+        return jdbcTemplate.query(FIND_MOST_POPULAR_FILMS, mapper, count).stream().map(this::findById).toList();
+    }
+
+    @Override
     public Film update(Film film) {
         Long id = film.getId();
 
@@ -159,10 +165,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     private Film fillFilmLikesAndGenres(Film film) {
-        Set<Long> likes = findAllLikesByFilmId(film.getId());
         Set<Genre> genres = findAllGenresByFilmId(film.getId());
 
-        film.setLikes(likes);
         film.setGenres(genres);
 
         return film;

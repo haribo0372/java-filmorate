@@ -8,5 +8,4 @@ import lombok.Data;
 public class Friendship {
     private Long userIdSend;
     private Long userIdReceive;
-    private boolean confirmed;
 }

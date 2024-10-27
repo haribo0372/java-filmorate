@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Comparator;
 
 @Slf4j
 @Service
@@ -73,12 +72,14 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getMostPopularMovies(Long count) {
-        Collection<Film> popularFilms = filmStorage.findAll().stream()
-                .sorted(Comparator.comparingInt(Film::numberOfLikes).reversed())
-                .limit(count)
-                .toList();
+        Collection<Film> popularFilms = filmStorage.findMostPopularMovies(count);
 
-        log.debug("Возвращены популярные фильмы {}", popularFilms);
+        StringBuilder logMessage = new StringBuilder("Возвращены популярные фильмы {");
+        for (Film film : popularFilms)
+            logMessage.append(String.format("Film[id=%s, likes=%s],",
+                    film.getId(), filmStorage.findAllLikesByFilmId(film.getId()).size()));
+        logMessage.append("}");
+        log.debug(logMessage.toString());
         return FilmMapper.filmsToFilmsDto(popularFilms);
     }
 }

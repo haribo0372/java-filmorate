@@ -23,10 +23,8 @@ public class UserService {
         userStorage.findById(userId2);
 
         if (userStorage.addFriendship(userId1, userId2))
-            log.info("Пользователь с id={} отправил запрос на добавление " +
-                    "в друзья пользователю с id={}", userId1, userId2);
+            log.info("Пользователь с id={} добавил в друзья пользователю с id={}", userId1, userId2);
 
-        user1.setFriends(userStorage.findAllFriendsIdByUserId(userId1));
         return UserMapper.fromUserToUserDto(user1);
     }
 

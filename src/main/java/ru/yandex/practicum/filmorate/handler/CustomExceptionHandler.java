@@ -49,6 +49,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ErrorResponse> handleThrowable(Throwable ex) {
         log.warn(ex.getMessage());
+        ex.printStackTrace();
         ErrorResponse errorResponse = new ErrorResponse("Произошла непредвиденная ошибка", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

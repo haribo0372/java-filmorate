@@ -7,7 +7,7 @@ public interface BaseStorage<T, K> {
 
     T findById(K id);
 
-    T remove(K id);
+    void remove(K id);
 
     T save(T entity);
 

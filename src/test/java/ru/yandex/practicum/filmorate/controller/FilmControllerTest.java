@@ -53,7 +53,7 @@ public class FilmControllerTest {
     private UpdateFilmRequest updateFilmRequest = new UpdateFilmRequest(
             1L, newFilmRequest.getName(), newFilmRequest.getDescription(),
             newFilmRequest.getReleaseDate(), newFilmRequest.getDuration(),
-            newFilmRequest.getGenres(), newFilmRequest.getMpa(), Set.of()
+            newFilmRequest.getGenres(), newFilmRequest.getMpa()
     );
 
 

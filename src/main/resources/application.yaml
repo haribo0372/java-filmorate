@@ -1,6 +1,6 @@
 logging.level:
-  ru.yandex.practicum.filmorate: INFO
-  org.zalando.logbook: TRACE
+  ru.yandex.practicum.filmorate: DEBUG
+  org.zalando.logbook: WARN
 
 spring:
   datasource:
